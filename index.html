@@ -1,34 +1,120 @@
+html
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Met museum artwork year guesser</title>
+    <meta charset="utf-8">
+    <title>Game Screen - Met Gallery Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <img src="The_Metropolitan_Museum_of_Art_Logo.svg.png" alt="Metropolitan Museum of Art Logo" class="logo">
-    <div class="container">
-        <h1>Met museum artwork year guesser</h1>
-        
-        <div class="welcome-content">
-            <p>Welcome to the Met Museum Artwork Year Guesser!</p>
-        </div>
-        
-        <div class="guidelines">
-            <h2>How to Play</h2>
-            <ul>
-                <li>A random artwork from the Metropolitan Museum of Art will be displayed</li>
-                <li>Look at the artwork and try to determine when it was created</li>
-                <li>Guess whether the artwork was created before or after 1800</li>
-                <li>Click either "Before 1800" or "After 1800" to make your guess</li>
-                <li>See if you're correct and learn more about the artwork!</li>
-            </ul>
-        </div>
-        
-        <div class="start-button" style="text-align: center;">
-            <button onclick="window.location.href='game.html'">Start Game</button>
+    <div class="header">
+        <img src="/images/met logo.jpg" alt="The Met Logo" class="logo">
+    </div>
+
+    <h1>Met Gallery Game</h1>
+    <p>Guess whether this artwork was created before 1800, or in/after 1800:</p>
+
+    <div class="row progress">
+        <div class="progress-text">
+            <span id="currentDept">1</span> of <span id="totalDepts">19</span> Departments
         </div>
     </div>
+
+    <div id="artworkDisplay" class="hidden">
+        <div class="artwork-container fade-in" id="artworkContainer" data-year="">
+            <img id="artworkImage" class="artwork-image" src="" alt="Artwork">
+
+            <div class="artwork-info">
+                <div class="artwork-title" id="artworkTitle"></div>
+                <div class="artwork-artist" id="artworkArtist"></div>
+                <div class="artwork-department" id="artworkDepartment"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="guess-input">
+        <fieldset>
+            <legend>Your Guess:</legend>
+            <label for="before-1800">
+                <input type="radio" id="before-1800" name="period" value="before">
+                Before 1800
+            </label>
+            <label for="onafter-1800">
+                <input type="radio" id="onafter-1800" name="period" value="onafter">
+                1800 or later
+            </label>
+        </fieldset>
+    </div>
+
+    <button id="submit-btn">Submit Guess</button>
+
+    <!-- Scriptid kõige lõppu -->
+    <script src="script.js"></script>
+    <script>
+        document.getElementById('submit-btn').addEventListener('click', submitGuess);
+
+        function submitGuess() {
+            const selected = document.querySelector('input[name="period"]:checked');
+            if (!selected) {
+                alert('Please choose "Before 1800" or "1800 or later".');
+                return;
+            }
+
+            const artContainer = document.getElementById('artworkContainer');
+            const actualYear = parseInt(artContainer.dataset.year, 10);
+
+            if (Number.isNaN(actualYear)) {
+                alert('Artwork year is not set. Set data-year on #artworkContainer.');
+                return;
+            }
+
+            const correct = actualYear < 1800 ? 'before' : 'onafter';
+            const isCorrect = selected.value === correct;
+
+            alert(isCorrect ? 'Correct!' : `Incorrect. This artwork is from ${actualYear}.`);
+        }
+    </script>
+    <!-- Code injected by live-server -->
+    <script>
+        // <![CDATA[  <-- For SVG support
+        if ('WebSocket' in window) {
+            (function () {
+                function refreshCSS() {
+                    var sheets = [].slice.call(document.getElementsByTagName("link"));
+                    var head = document.getElementsByTagName("head")[0];
+                    for (var i = 0; i < sheets.length; ++i) {
+                        var elem = sheets[i];
+                        var parent = elem.parentElement || head;
+                        parent.removeChild(elem);
+                        var rel = elem.rel;
+                        if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+                            var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+                            elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+                        }
+                        parent.appendChild(elem);
+                    }
+                }
+                var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+                var address = protocol + window.location.host + window.location.pathname + '/ws';
+                var socket = new WebSocket(address);
+                socket.onmessage = function (msg) {
+                    if (msg.data == 'reload') window.location.reload();
+                    else if (msg.data == 'refreshcss') refreshCSS();
+                };
+                if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+                    console.log('Live reload enabled.');
+                    sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+                }
+            })();
+        }
+        else {
+            console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+        }
+        // ]]>
+    </script>
 </body>
+
 </html>
