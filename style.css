@@ -162,6 +162,20 @@ button:hover {
     transform: translateY(-1px);
 }
 
+.btn {
+    display: inline-block;
+    padding: 10px 16px;
+    background: #0b74de;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 12px 24px;
+    align: center;
+}
+
+.btn:hover { background: #095fb0; }
+
 @media (max-width: 600px) {
     .header {
         flex-direction: column;
