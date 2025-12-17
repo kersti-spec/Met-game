@@ -15,18 +15,25 @@
     <div class="container">
         <h1>Met museum artwork year guesser</h1>
 
-        <div class="artwork-container">
-            <div class="loading" id="loading">Loading artwork...</div>
-            <img id="artwork-image" class="artwork-image" style="display: none;" alt="Artwork">
-            <div class="artwork-info" id="artwork-info"></div>
+        <div class="game-over-container" style="display: none;">
+            <h2>Game Over!</h2>
+            <p>Your final score is: <span id="final-score">0</span></p>
+            <button id="restart-btn">Play Again</button>
         </div>
+        <div class="game-container">
+            <div class="artwork-container">
+                <div class="loading" id="loading">Loading artwork...</div>
+                <img id="artwork-image" class="artwork-image" style="display: none;" alt="Artwork">
+                <div class="artwork-info" id="artwork-info"></div>
+            </div>
 
-        <div class="guess-buttons">
-            <button id="before-1800">Before 1800</button>
-            <button id="after-1800">After 1800</button>
+            <div class="guess-buttons">
+                <button id="before-1800">Before 1800</button>
+                <button id="after-1800">After 1800</button>
+            </div>
+
+            <div class="result" id="result"></div>
         </div>
-
-        <div class="result" id="result"></div>
     </div>
 
     <script src="app.js"></script>

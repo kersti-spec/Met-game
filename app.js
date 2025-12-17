@@ -1,4 +1,4 @@
-// MET API integration and game logic
+// MET API integration and game logic — select one artwork per department in ascending departmentId order
 
 document.addEventListener('DOMContentLoaded', function() {
     const loadingEl = document.getElementById('loading');
@@ -8,202 +8,233 @@ document.addEventListener('DOMContentLoaded', function() {
     const afterButton = document.getElementById('after-1800');
     const resultEl = document.getElementById('result');
     const scoreDisplayEl = document.getElementById('score-display');
-    
-    let currentArtwork = null;
+
     const API_BASE_URL = 'https://collectionapi.metmuseum.org/public/collection/v1';
-    
-    // Score management with localStorage
+
+    // Fallback total departments to 21 (API currently returns 21)
+    const TOTAL_DEPS_FALLBACK = 19;
+
+    let departments = [];   // list of departments sorted by departmentId
+    let items = [];         // chosen artwork per department (same order as departments)
+    let currentIndex = 0;   // index into items / departments
+    let currentArtwork = null;
+
+    // Score management
     function getScore() {
         const savedScore = localStorage.getItem('metGameScore');
         return savedScore ? parseInt(savedScore, 10) : 0;
     }
-    
     function saveScore(score) {
         localStorage.setItem('metGameScore', score.toString());
     }
-    
     function updateScoreDisplay() {
-        const score = getScore();
-        scoreDisplayEl.textContent = `Score: ${score}`;
+        scoreDisplayEl.textContent = `Score: ${getScore()}`;
     }
-    
     function incrementScore() {
-        const currentScore = getScore();
-        const newScore = currentScore + 1;
-        saveScore(newScore);
+        saveScore(getScore() + 1);
         updateScoreDisplay();
     }
-    
-    // Initialize score display
     updateScoreDisplay();
+
     
-    // Load a random artwork
-    async function loadArtwork() {
-        loadingEl.style.display = 'block';
-        artworkImageEl.style.display = 'none';
-        artworkInfoEl.textContent = '';
-        resultEl.textContent = '';
-        beforeButton.disabled = true;
-        afterButton.disabled = true;
-        
-        try {
-            // First, search for 'sunflower' to get array of object IDs
-            const searchUrl = `${API_BASE_URL}/search?q=sunflower`;
-            console.log('Fetching search URL:', searchUrl);
-            const searchResponse = await fetch(searchUrl);
-            if (!searchResponse.ok) {
-                const errorData = await searchResponse.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP error! status: ${searchResponse.status}`);
-            }
-            const searchData = await searchResponse.json();
-            
-            // Check if response contains an error
-            if (searchData.error) {
-                throw new Error(searchData.message || searchData.error);
-            }
-            
-            if (!searchData.objectIDs || searchData.objectIDs.length === 0) {
-                throw new Error('No sunflower artworks found');
-            }
-            
-            // Pick a random object ID from the search results
-            const randomIndex = Math.floor(Math.random() * searchData.objectIDs.length);
-            const randomObjectID = searchData.objectIDs[randomIndex];
-            console.log(`Selected random ID: ${randomObjectID} from ${searchData.objectIDs.length} results`);
-            
-            // Fetch the artwork details
-            const objectUrl = `${API_BASE_URL}/objects/${randomObjectID}`;
-            console.log('Fetching object URL:', objectUrl);
-            const objectResponse = await fetch(objectUrl);
-            if (!objectResponse.ok) {
-                const errorData = await objectResponse.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP error! status: ${objectResponse.status}`);
-            }
-            const artwork = await objectResponse.json();
-            
-            // Check if response contains an error
-            if (artwork.error) {
-                throw new Error(artwork.message || artwork.error);
-            }
-            
-            // Check if artwork has an image
-            if (!artwork.primaryImage || artwork.primaryImage === '') {
-                // If no image, try again
-                return loadArtwork();
-            }
-            
-            currentArtwork = artwork;
-            
-            // Display the artwork
-            artworkImageEl.src = artwork.primaryImage;
-            artworkImageEl.alt = artwork.title || 'Artwork';
-            artworkImageEl.style.display = 'block';
-            
-            // Display artwork info (title and artist, but not the date)
-            let infoText = '';
-            if (artwork.title) {
-                infoText += artwork.title;
-            }
-            if (artwork.artistDisplayName) {
-                infoText += infoText ? ` by ${artwork.artistDisplayName}` : artwork.artistDisplayName;
-            }
-            artworkInfoEl.textContent = infoText || 'Unknown artwork';
-            
-            loadingEl.style.display = 'none';
-            beforeButton.disabled = false;
-            afterButton.disabled = false;
-            
-        } catch (error) {
-            console.error('Error loading artwork:', error);
-            
-            let errorMessage = 'Error loading artwork. ';
-            if (error.message.includes('502') || error.message.includes('Bad Gateway')) {
-                errorMessage += 'The MET API server is currently unavailable. Please try again in a few moments.';
-            } else if (error.message.includes('503') || error.message.includes('Service Unavailable')) {
-                errorMessage += 'The MET API service is temporarily unavailable. Please try again later.';
-            } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-                errorMessage += 'Unable to connect to the server. Please check your internet connection.';
-            } else {
-                errorMessage += 'Please try again.';
-            }
-            
-            loadingEl.textContent = errorMessage;
-            loadingEl.style.color = '#8B0000';
-            beforeButton.disabled = false;
-            afterButton.disabled = false;
-        }
+
+    // Fetch departments and sort by departmentId ascending
+    async function fetchDepartments() {
+        const res = await fetch(`${API_BASE_URL}/departments`);
+        if (!res.ok) throw new Error('Failed to fetch departments');
+        const json = await res.json();
+        const deps = json.departments || [];
+        deps.sort((a, b) => a.departmentId - b.departmentId);
+        return deps;
     }
-    
-    // Extract year from objectDate string
-    function extractYear(objectDate) {
-        if (!objectDate) return null;
-        
-        // objectDate can be in formats like "1800", "1800-1850", "ca. 1800", etc.
-        // Try to extract the first 4-digit year
-        const yearMatch = objectDate.match(/\b(\d{4})\b/);
-        if (yearMatch) {
-            return parseInt(yearMatch[1]);
-        }
-        
-        // If no 4-digit year found, try to get the first number
-        const numMatch = objectDate.match(/-?\d+/);
-        if (numMatch) {
-            const year = parseInt(numMatch[0]);
-            // Handle BC dates (negative years)
-            if (year < 0) {
-                return year;
+
+    // Fetch one artwork (with image) for a given departmentId
+    async function fetchOneForDepartment(deptId) {
+        const searchUrl = `${API_BASE_URL}/search?departmentId=${deptId}&hasImages=true&q=a`;
+        try {
+            const sRes = await fetch(searchUrl);
+            if (!sRes.ok) return null;
+            const sJson = await sRes.json();
+            if (!sJson.objectIDs || sJson.objectIDs.length === 0) return null;
+
+            // shuffle and try up to 12 candidates to find one with an image
+            const candidates = sJson.objectIDs.slice();
+            for (let i = candidates.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
             }
-            // If it's a 2-digit number, assume it's a year (like 99 = 99 AD)
-            if (year < 100) {
-                return year;
+
+            const tries = Math.min(12, candidates.length);
+            for (let i = 0; i < tries; i++) {
+                const id = candidates[i];
+                try {
+                    const oRes = await fetch(`${API_BASE_URL}/objects/${id}`);
+                    if (!oRes.ok) continue;
+                    const obj = await oRes.json();
+                    if (obj && (obj.primaryImageSmall || obj.primaryImage)) return obj;
+                } catch (e) {
+                    // ignore and continue
+                }
             }
-            return year;
+        } catch (e) {
+            console.warn('search failed for dept', deptId, e);
         }
-        
         return null;
     }
-    
-    // Handle guess
-    function handleGuess(isBefore1800) {
-        if (!currentArtwork) return;
-        
-        const objectDate = currentArtwork.objectDate;
-        const year = extractYear(objectDate);
-        
-        let isCorrect = false;
-        let message = '';
-        
-        if (year === null) {
-            message = `Unable to determine the date. The artwork's date is listed as: "${objectDate || 'Unknown'}"`;
-        } else {
-            const isActuallyBefore1800 = year < 1800;
-            isCorrect = isBefore1800 === isActuallyBefore1800;
-            
-            if (isCorrect) {
-                message = `Correct! The artwork is from ${year}.`;
-                incrementScore();
-            } else {
-                message = `Incorrect. The artwork is from ${year}.`;
-            }
+
+    // Render a given item index
+    function showItem(index) {
+        currentIndex = index;
+        currentArtwork = items[currentIndex] || null;
+        resultEl.textContent = '';
+        loadingEl.style.display = 'none';
+        console.log('deps length:', departments.length, departments);
+
+        const totalDeps = departments.length || TOTAL_DEPS_FALLBACK;
+
+        if (!currentArtwork) {
+            artworkImageEl.style.display = 'none';
+            artworkInfoEl.innerHTML = `<div class="art-dept">Dept ${departments[currentIndex] ? departments[currentIndex].departmentId : '—'} of ${totalDeps}: ${departments[currentIndex] ? departments[currentIndex].displayName : 'Unknown'}</div>
+                                      <div style="margin-top:8px;">No artwork with image found for this department.</div>`;
+            beforeButton.disabled = true;
+            afterButton.disabled = true;
+            // update progress indicator
+            const progressEl = document.getElementById('progress');
+            if (progressEl) progressEl.textContent = `${currentIndex + 1}/${totalDeps}`;
+            return;
         }
-        
-        resultEl.textContent = message;
-        resultEl.style.color = year !== null && isCorrect ? '#006400' : '#8B0000';
-        
-        // Disable buttons after guess
+
+        // show image
+        const imgUrl = currentArtwork.primaryImageSmall || currentArtwork.primaryImage || '';
+        if (imgUrl) {
+            artworkImageEl.src = imgUrl;
+            artworkImageEl.alt = currentArtwork.title || 'Artwork';
+            artworkImageEl.style.display = '';
+        } else {
+            artworkImageEl.style.display = 'none';
+        }
+
+        // show dept number/name, then title and author BELOW image (keeps year hidden here)
+        const deptId = departments[currentIndex] ? departments[currentIndex].departmentId : '—';
+        const deptName = departments[currentIndex] ? departments[currentIndex].displayName : 'Unknown';
+        const title = currentArtwork.title || 'Untitled';
+        const artist = currentArtwork.artistDisplayName || 'Unknown';
+        artworkInfoEl.innerHTML = `
+            <div class="art-dept">Dept ${deptId} of ${totalDeps}: ${deptName}</div>
+            <div class="art-title" style="margin-top:8px; font-weight:700;">${title}</div>
+            <div class="art-artist" style="color:#555;">${artist}</div>
+        `;
+
+        beforeButton.disabled = false;
+        afterButton.disabled = false;
+
+        // update small progress indicator in header if present (1/21)
+        const progressEl = document.getElementById('progress');
+        if (progressEl) {
+            progressEl.textContent = `${currentIndex + 1}/${totalDeps}`;
+        }
+    }
+
+    // Advance to next department (skip nulls if desired or show placeholders)
+    function advance() {
+        let next = currentIndex + 1;
+        if (next >= items.length) {
+            // finished
+            const totalDeps = departments.length || TOTAL_DEPS_FALLBACK;
+            loadingEl.textContent = 'Game complete — no more departments.';
+            artworkImageEl.style.display = 'none';
+            beforeButton.disabled = true;
+            afterButton.disabled = true;
+            const progressEl = document.getElementById('progress');
+            if (progressEl) progressEl.textContent = `${totalDeps}/${totalDeps}`;
+            return;
+        }
+        showItem(next);
+    }
+
+    // Extract year from artwork object
+    function extractYearFromArtwork(artwork) {
+        if (!artwork) return null;
+        if (typeof artwork.objectBeginDate === 'number' && !Number.isNaN(artwork.objectBeginDate)) return artwork.objectBeginDate;
+        const objectDate = artwork.objectDate || '';
+        if (!objectDate) return null;
+        const yearMatch = objectDate.match(/\b(-?\d{3,4})\b/);
+        if (yearMatch) return parseInt(yearMatch[1], 10);
+        const numMatch = objectDate.match(/-?\d+/);
+        if (numMatch) return parseInt(numMatch[0], 10);
+        return null;
+    }
+
+    // Handle guess and reveal year after verdict (year shown separately)
+    function handleGuess(isBefore1800) {
+        if (!currentArtwork) {
+            resultEl.textContent = 'No artwork to check.';
+            return;
+        }
+        const year = extractYearFromArtwork(currentArtwork);
+        if (year === null) {
+            resultEl.textContent = 'Unable to determine the date for this artwork.';
+            resultEl.style.color = '#8B0000';
+            setTimeout(() => {
+                const reveal = document.createElement('div');
+                reveal.className = 'reveal-year';
+                reveal.textContent = `Listed date: ${currentArtwork.objectDate || 'Unknown'}`;
+                reveal.style.marginTop = '6px';
+                reveal.style.fontSize = '13px';
+                reveal.style.color = '#333';
+                resultEl.appendChild(reveal);
+            }, 900);
+        } else {
+            const actuallyBefore = year < 1800;
+            const isCorrect = (isBefore1800 === actuallyBefore);
+            resultEl.textContent = isCorrect ? 'Correct!' : 'Incorrect.';
+            resultEl.style.color = isCorrect ? '#006400' : '#8B0000';
+            if (isCorrect) incrementScore();
+            setTimeout(() => {
+                const reveal = document.createElement('div');
+                reveal.className = 'reveal-year';
+                reveal.textContent = `Year: ${year}`;
+                reveal.style.marginTop = '6px';
+                reveal.style.fontSize = '13px';
+                reveal.style.color = '#333';
+                resultEl.appendChild(reveal);
+            }, 900);
+        }
         beforeButton.disabled = true;
         afterButton.disabled = true;
-        
-        // Load new artwork after a delay
-        setTimeout(() => {
-            loadArtwork();
-        }, 3000);
+
+        setTimeout(() => advance(), 2000);
     }
-    
+
     beforeButton.addEventListener('click', () => handleGuess(true));
     afterButton.addEventListener('click', () => handleGuess(false));
-    
-    // Load initial artwork
-    loadArtwork();
+
+    // Initialization: fetch departments (sorted) and pick one artwork per department in that order
+    async function init() {
+        loadingEl.textContent = 'Loading departments...';
+        try {
+            departments = await fetchDepartments();
+            const totalDeps = departments.length || TOTAL_DEPS_FALLBACK;
+            loadingEl.textContent = `Found ${totalDeps} departments — picking one artwork from each (in order)...`;
+
+            // fetch one artwork per department in parallel (keeps order)
+            const promises = departments.map(d => fetchOneForDepartment(d.departmentId));
+            const results = await Promise.all(promises);
+            items = results; // same order as departments array
+
+            // start at first department that has an item (or 0)
+            currentIndex = 0;
+            // don't skip nulls automatically; show placeholders if no artwork
+            showItem(currentIndex);
+        } catch (err) {
+            console.error(err);
+            loadingEl.textContent = 'Failed to initialize game.';
+            loadingEl.style.color = '#8B0000';
+        }
+    }
+
+    init();
+
+    startGame();
 });
 

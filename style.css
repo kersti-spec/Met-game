@@ -171,7 +171,6 @@ button:hover {
     border-radius: 6px;
     font-weight: 600;
     padding: 12px 24px;
-    align: center;
 }
 
 .btn:hover { background: #095fb0; }
