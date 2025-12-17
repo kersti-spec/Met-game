@@ -36,6 +36,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     updateScoreDisplay();
 
+    // Logo click: reset score + go to index.html
+const logoEl = document.getElementById('logo');
+if (logoEl) {
+    logoEl.style.cursor = 'pointer';
+    logoEl.addEventListener('click', () => {
+        localStorage.setItem('metGameScore', '0'); // reset score
+        window.location.href = 'index.html';
+    });
+}
+
     
 
     // Fetch departments and sort by departmentId ascending
@@ -235,6 +245,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     init();
 
-    startGame();
+   
 });
 
