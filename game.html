@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Met museum artwork year guesser - Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <img src="The_Metropolitan_Museum_of_Art_Logo.svg.png" alt="Metropolitan Museum of Art Logo" class="logo">
+    <div class="score-display" id="score-display">Score: 0</div>
+    <div class="container">
+        <h1>Met museum artwork year guesser</h1>
+        
+        <div class="artwork-container">
+            <div class="loading" id="loading">Loading artwork...</div>
+            <img id="artwork-image" class="artwork-image" style="display: none;" alt="Artwork">
+            <div class="artwork-info" id="artwork-info"></div>
+        </div>
+        
+        <div class="guess-buttons">
+            <button id="before-1800">Before 1800</button>
+            <button id="after-1800">After 1800</button>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
+
