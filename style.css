@@ -46,11 +46,19 @@ body{
 
 .brand{ display:flex; align-items:center; text-decoration:none; }
 
-.header .logo{
+.header-visual{
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+
+/* .header .logo{
   height: 44px;
   width: auto;
   display: block;
-}
+} */
 
 .nav{
   display:flex;

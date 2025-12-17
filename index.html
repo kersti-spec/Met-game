@@ -11,7 +11,7 @@
 <body>
     <header class="header">
         <a class="brand" href="index.html" aria-label="Back to home">
-            <img src="images/met_logo.png" alt="The Met Logo" class="logo" />
+            <img id="header-visual" class="header-visual" alt="The Met visual" />
         </a>
 
         <nav class="nav" aria-label="Main navigation">
@@ -47,6 +47,26 @@
             </ul>
         </section>
     </main>
+
+    <script>
+        const headerImg = document.getElementById("header-visual");
+
+        const animatedSrc =
+            "https://cdn.sanity.io/images/cctd4ker/production/1357b570f8ec477e8bc69bf74f56b43877e72e58-720x466.gif?w=3840&q=75&fit=clip&auto=format";
+
+        const staticSrc = "images/met_logo.png";
+        // või tee eraldi staatiline headeri pilt, nt images/met_header_static.png
+
+        if (!sessionStorage.getItem("metHeaderPlayed")) {
+            // esimene kord
+            headerImg.src = animatedSrc;
+            sessionStorage.setItem("metHeaderPlayed", "true");
+        } else {
+            // järgmised korrad
+            headerImg.src = staticSrc;
+        }
+    </script>
+
 </body>
 
 </html>
