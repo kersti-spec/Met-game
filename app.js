@@ -37,11 +37,13 @@ document.addEventListener('DOMContentLoaded', function() {
     updateScoreDisplay();
 
     // Logo click: reset score + go to index.html
-const logoEl = document.getElementById('logo');
+const logoEl = document.getElementById('header-visual');
 if (logoEl) {
     logoEl.style.cursor = 'pointer';
     logoEl.addEventListener('click', () => {
         localStorage.setItem('metGameScore', '0'); // reset score
+        // remove metHeaderPlayed from sessionStorage
+        sessionStorage.removeItem('metHeaderPlayed');
         window.location.href = 'index.html';
     });
 }

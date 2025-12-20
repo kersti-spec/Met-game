@@ -10,7 +10,7 @@
 
 <body>
     <header class="header">
-        <a class="brand" href="index.html" aria-label="Back to home">
+        <a class="brand" href="index.html" aria-label="Back to home" style="background-color: white;">
             <img id="header-visual" class="header-visual" alt="The Met visual" />
         </a>
 
@@ -54,16 +54,26 @@
         const animatedSrc =
             "https://cdn.sanity.io/images/cctd4ker/production/1357b570f8ec477e8bc69bf74f56b43877e72e58-720x466.gif?w=3840&q=75&fit=clip&auto=format";
 
-        const staticSrc = "images/met_logo.png";
-        // või tee eraldi staatiline headeri pilt, nt images/met_header_static.png
+        console.log("Animated src:", animatedSrc);
 
+        const staticSrc = "images/met-logo.png";
+        // play gif once, then switch to static image
         if (!sessionStorage.getItem("metHeaderPlayed")) {
-            // esimene kord
             headerImg.src = animatedSrc;
-            sessionStorage.setItem("metHeaderPlayed", "true");
+            headerImg.onload = () => {
+                setTimeout(() => {
+                    headerImg.src = staticSrc;
+                    sessionStorage.setItem("metHeaderPlayed", "true");
+                }, 5000); // assuming gif is 4 seconds long
+            };
         } else {
-            // järgmised korrad
             headerImg.src = staticSrc;
+
+            // remove item before leaving page 
+
+            window.addEventListener("beforeunload", () => {
+                sessionStorage.removeItem("metHeaderPlayed");
+            });
         }
     </script>
 
