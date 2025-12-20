@@ -149,6 +149,9 @@ if (logoEl) {
 
     // Advance to next department (skip nulls if desired or show placeholders)
     function advance() {
+        resultEl.innerHTML = '';
+resultEl.classList.remove('correct', 'incorrect');
+resultEl.removeAttribute('data-status');
         let next = currentIndex + 1;
         if (next >= items.length) {
             // finished
@@ -164,6 +167,14 @@ if (logoEl) {
         showItem(next);
     }
 
+    // Reset result display
+resultEl.innerHTML = '';
+resultEl.classList.remove('correct', 'incorrect');
+resultEl.removeAttribute('data-status');
+
+
+
+
     // Extract year from artwork object
     function extractYearFromArtwork(artwork) {
         if (!artwork) return null;
@@ -177,6 +188,25 @@ if (logoEl) {
         return null;
     }
 
+function animateResult(isCorrect) {
+    const frame = document.querySelector('.artwork-frame');
+    if (!frame) return;
+
+    frame.classList.remove('correct', 'incorrect');
+
+    if (isCorrect) {
+        frame.classList.add('correct');
+    } else {
+        frame.classList.add('incorrect');
+    }
+
+    // eemalda animatsioon pärast hetke
+    setTimeout(() => {
+        frame.classList.remove('correct', 'incorrect');
+    }, 1200);
+}
+
+
     // Handle guess and reveal year after verdict (year shown separately)
     function handleGuess(isBefore1800) {
         if (!currentArtwork) {
@@ -187,30 +217,45 @@ if (logoEl) {
         if (year === null) {
             resultEl.textContent = 'Unable to determine the date for this artwork.';
             resultEl.style.color = '#8B0000';
-            setTimeout(() => {
-                const reveal = document.createElement('div');
-                reveal.className = 'reveal-year';
-                reveal.textContent = `Listed date: ${currentArtwork.objectDate || 'Unknown'}`;
-                reveal.style.marginTop = '6px';
-                reveal.style.fontSize = '13px';
-                reveal.style.color = '#333';
-                resultEl.appendChild(reveal);
-            }, 900);
+setTimeout(() => {
+    resultEl.innerHTML += `
+        <div class="result-meta">
+            <span class="result-label">Listed date</span>
+            <span class="result-value">${currentArtwork.objectDate || 'Unknown'}</span>
+        </div>
+    `;
+}, 700);
+
         } else {
             const actuallyBefore = year < 1800;
-            const isCorrect = (isBefore1800 === actuallyBefore);
-            resultEl.textContent = isCorrect ? 'Correct!' : 'Incorrect.';
-            resultEl.style.color = isCorrect ? '#006400' : '#8B0000';
-            if (isCorrect) incrementScore();
-            setTimeout(() => {
-                const reveal = document.createElement('div');
-                reveal.className = 'reveal-year';
-                reveal.textContent = `Year: ${year}`;
-                reveal.style.marginTop = '6px';
-                reveal.style.fontSize = '13px';
-                reveal.style.color = '#333';
-                resultEl.appendChild(reveal);
-            }, 900);
+   const isCorrect = (isBefore1800 === actuallyBefore);
+
+resultEl.innerHTML = '';
+resultEl.classList.remove('correct', 'incorrect');
+
+if (isCorrect) {
+    resultEl.classList.add('correct');
+    resultEl.dataset.status = 'Correct';
+    incrementScore();
+} else {
+    resultEl.classList.add('incorrect');
+    resultEl.dataset.status = 'Incorrect';
+}
+
+
+if (isCorrect) {
+    incrementScore();
+}
+
+animateResult(isCorrect);
+setTimeout(() => {
+    resultEl.innerHTML += `
+        <div class="result-meta">
+            <span class="result-label">Year</span>
+            <span class="result-value">${year}</span>
+        </div>
+    `;
+}, 700);
         }
         beforeButton.disabled = true;
         afterButton.disabled = true;

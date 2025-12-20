@@ -265,15 +265,18 @@ h1{
   margin-top: 14px;
   font-size: 14px;
   color: var(--muted);
+  text-align: center;
 }
 
 #artwork-info .art-title{
   font-size: 18px;
   line-height: 1.25;
+  text-align: center;
 }
 
 #artwork-info .art-artist{
   margin-top: 2px;
+  text-align: center;
 }
 
 /* buttons centered + nice */
@@ -320,10 +323,116 @@ h1{
   margin-top: 14px;
   font-weight: 800;
   text-align: center;
+  animation: fadeUp .4s ease-out;
 }
+
+@keyframes fadeUp{
+  from{ opacity: 0; transform: translateY(6px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
+
 
 /* mobile: smaller image frame */
 @media (max-width: 640px){
   .artwork-frame{ height: 240px; }
   .game-card{ padding: 14px; }
+}
+
+
+/* ===== GAME FEEDBACK ANIMATIONS ===== */
+
+/* common */
+.artwork-frame{
+  transition: box-shadow .4s ease, transform .35s ease;
+}
+
+/* CORRECT */
+.artwork-frame.correct{
+  box-shadow:
+    0 0 0 2px rgba(218,165,32,.55),
+    0 0 28px rgba(218,165,32,.45);
+  transform: scale(1.015);
+}
+
+.artwork-frame.correct::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 80% at 50% 0%,
+      rgba(218,165,32,.35),
+      transparent 60%);
+  animation: glowFade 1.4s ease-out;
+  pointer-events: none;
+}
+
+/* INCORRECT */
+.artwork-frame.incorrect{
+  box-shadow:
+    0 0 0 2px rgba(177,26,33,.45),
+    0 0 22px rgba(177,26,33,.35);
+}
+
+/* subtle glow fade */
+@keyframes glowFade{
+  from{ opacity: .9; }
+  to{ opacity: 0; }
+}
+
+/* ===== RESULT FEEDBACK ===== */
+
+.result{
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* Correct / Incorrect pill */
+.result::before{
+  content: attr(data-status);
+  display: inline-block;
+  margin-bottom: 8px;
+
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+/* status colors */
+.result.correct::before{
+  background: rgba(218,165,32,.18);
+  color: #6b5200;
+  border: 1px solid rgba(218,165,32,.45);
+}
+
+.result.incorrect::before{
+  background: rgba(177,26,33,.12);
+  color: #7a1419;
+  border: 1px solid rgba(177,26,33,.35);
+}
+
+/* meta info (year / date) */
+.result-meta{
+  margin-top: 6px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.result-label{
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-size: 11px;
+}
+
+.result-value{
+  font-weight: 700;
+  color: var(--text);
 }
