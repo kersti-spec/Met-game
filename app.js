@@ -156,13 +156,17 @@ resultEl.removeAttribute('data-status');
         if (next >= items.length) {
             // finished
             const totalDeps = departments.length || TOTAL_DEPS_FALLBACK;
-            loadingEl.textContent = 'Game complete — no more departments.';
-            artworkImageEl.style.display = 'none';
-            beforeButton.disabled = true;
-            afterButton.disabled = true;
-            const progressEl = document.getElementById('progress');
-            if (progressEl) progressEl.textContent = `${totalDeps}/${totalDeps}`;
-            return;
+if (next >= items.length) {
+    const totalDeps = departments.length || TOTAL_DEPS_FALLBACK;
+
+    // snapshot final score for gameover page
+    localStorage.setItem('metGameFinalScore', String(getScore()));
+    localStorage.setItem('metGameTotal', String(totalDeps));
+
+    window.location.href = 'gameover.html';
+    return;
+}
+
         }
         showItem(next);
     }
@@ -271,6 +275,8 @@ setTimeout(() => {
         loadingEl.textContent = 'Loading departments...';
         try {
             departments = await fetchDepartments();
+            departments = departments.slice(0, 19);
+
             const totalDeps = departments.length || TOTAL_DEPS_FALLBACK;
             loadingEl.textContent = `Found ${totalDeps} departments — picking one artwork from each (in order)...`;
 

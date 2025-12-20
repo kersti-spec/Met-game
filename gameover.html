@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Game Complete - Met Gallery Game</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <header class="header">
+        <a class="brand" href="index.html" aria-label="Back to home" style="background-color: white;">
+            <img class="header-visual" src="images/met-logo.png" alt="The Met visual" />
+        </a>
+
+        <!-- gameover lehel score ei näita -->
+        <nav class="nav" aria-label="Main navigation">
+            <a href="index.html">Home</a>
+            <a href="game.html">Play Game</a>
+        </nav>
+    </header>
+
+    <main class="container gameover">
+        <section class="gameover-card">
+            <div class="member-card" aria-label="Score card">
+                <div class="member-top">
+                    <span class="member-kicker">Met Gallery Game</span>
+                </div>
+
+                <div class="member-score">
+                    <div class="score-big" id="finalScore">0</div>
+                    <div class="score-slash">/</div>
+                    <div class="score-big" id="totalScore">19</div>
+                </div>
+
+                <div class="member-sub">Departments completed</div>
+
+                <div class="member-mark">
+                    <span class="member-mark-text">THE MET</span>
+                </div>
+            </div>
+
+            <div class="gameover-message">
+                <div class="script-line">Officially</div>
+                <h1 class="gameover-title">Member of The Met Museum</h1>
+
+                <p class="subtitle gameover-subtitle">
+                    Want a perfect score? See the real collection in person.
+                </p>
+
+                <div class="gameover-actions">
+                    <a href="game.html" class="cta" id="playAgainBtn">Play again</a>
+                    <a href="https://www.metmuseum.org/" class="secondary-cta" target="_blank"
+                        rel="noopener noreferrer">
+                        Get tickets
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="gameover.js"></script>
+</body>
+
+</html>
