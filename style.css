@@ -449,6 +449,7 @@ h1{
 }
 
 .gameover-card{
+  perspective: 1200px; /* makes the 3D card feel real */
   margin: 0 auto;
   max-width: 920px;
 
@@ -499,6 +500,7 @@ h1{
   letter-spacing: .06em;
   text-transform: uppercase;
   font-weight: 700;
+  text-align: center;
 }
 
 .member-score{
@@ -610,3 +612,114 @@ h1{
     height: 360px;
   }
 }
+
+/* ===== Realistic membership card look ===== */
+
+.member-card{
+  position: relative;
+  height: 420px;
+  border-radius: 22px;
+  overflow: hidden;
+
+  background: #e4012a;
+  border: 1px solid rgba(255,255,255,.16);
+
+  /* 3D feel */
+  transform: perspective(900px) rotateY(-10deg) rotateX(4deg) rotateZ(-2deg);
+  transform-origin: center;
+  box-shadow:
+    0 26px 50px rgba(2,6,23,.25),
+    0 10px 18px rgba(2,6,23,.18);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
+  color: #fff;
+}
+
+/* soften corners and add subtle edge highlight */
+.member-card::before{
+  content:"";
+  position:absolute;
+  inset: 0;
+  border-radius: 22px;
+  pointer-events:none;
+
+  /* edge highlight */
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);
+}
+
+/* glossy sheen layer */
+.member-card::after{
+  content:"";
+  position:absolute;
+  inset:-40% -20%;
+  pointer-events:none;
+
+  background:
+    radial-gradient(closest-side at 30% 20%, rgba(255,255,255,.35), transparent 55%),
+    linear-gradient(120deg, rgba(255,255,255,.18), transparent 40%);
+
+  transform: rotate(18deg);
+  opacity: .85;
+  mix-blend-mode: screen;
+}
+
+/* hover: tiny “pick it up” interaction */
+.member-card:hover{
+  transform: perspective(900px) rotateY(-6deg) rotateX(2deg) rotateZ(-1deg) translateY(-2px);
+  transition: transform .18s ease;
+}
+
+/* vertical "Member" like in your ref */
+.member-ribbon{
+  position:absolute;
+  right: 14px;
+  top: 18px;
+
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+
+  font-weight: 700;
+  letter-spacing: .08em;
+  font-size: 13px;
+  opacity: .92;
+
+  padding: 10px 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+
+  z-index: 2;
+}
+
+/* score stays readable above sheen */
+.member-score{
+  position: relative;
+  z-index: 2;
+
+  display:flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 90px;
+}
+
+/* logo bottom-left, like “printed” */
+.member-logo{
+  position: relative;
+  z-index: 2;
+
+  width: 140px;
+  height: auto;
+
+  /* make it feel like ink on plastic */
+  filter: brightness(1000%) contrast(200%); /* turns png into white-ish if it's dark */
+  opacity: .95;
+
+  align-self: flex-start;
+  margin-top: 18px;
+}
+
+/* If your met-logo.png is already white, remove the filter above */
