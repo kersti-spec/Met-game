@@ -1,4 +1,4 @@
-# Met-game
+# met-game
 
 Met Museum Artwork Year Guesser - A game where you guess if artworks are from before or after 1800.
 
