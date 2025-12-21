@@ -2,7 +2,14 @@
 document.addEventListener("DOMContentLoaded", () => {
   const finalEl = document.getElementById("finalScore");
   const totalEl = document.getElementById("totalScore");
-  const playAgainBtn = document.getElementById("playAgainBtn");
+  const navPlayAgain = document.getElementById("navPlayAgain");
+if (navPlayAgain) {
+  navPlayAgain.addEventListener("click", () => {
+    localStorage.setItem("metGameScore", "0");
+    localStorage.removeItem("metGameFinalScore");
+    localStorage.removeItem("metGameTotal");
+  });
+}
 
   const finalScore = localStorage.getItem("metGameFinalScore");
   const total = localStorage.getItem("metGameTotal") || "19";
